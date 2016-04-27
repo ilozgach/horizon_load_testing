@@ -6,6 +6,7 @@ import time
 from selenium import webdriver
 
 from custom_openstack_client import CustomOpenstackClient
+from custom_report import CustomReport
 
 KEYSTONE_PUBLIC_URL = "http://172.16.54.195:5000/v3"
 GLANCE_PUBLIC_URL = "http://172.16.54.195:9292/v1"
@@ -16,6 +17,7 @@ HORIZON_BASE_URL = "http://172.16.54.195/horizon/"
 class HorizonLoadTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.report = CustomReport()
         cls.client = CustomOpenstackClient(KEYSTONE_PUBLIC_URL, GLANCE_PUBLIC_URL)
 
         cls.driver = webdriver.Chrome()
@@ -33,6 +35,7 @@ class HorizonLoadTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.client.cleanup()
+        cls.report.write_results()
 
     @ddt.data(
         {"nof_images": 3},
@@ -47,4 +50,5 @@ class HorizonLoadTest(unittest.TestCase):
         te = time.time()
         count_span = self.driver.find_element_by_class_name("table_count")
         self.assertEquals(count_span.text, "Displaying {} items".format(nof_images))
-        print '%d images loaded in %2.2f sec' % (nof_images, te - ts)
+        
+        self.report.add_result("admin/images", nof_images, te - ts)
