@@ -34,21 +34,44 @@ class HorizonLoadTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.driver.close()
         cls.client.cleanup()
         cls.report.write_results()
 
     @ddt.data(
-        {"nof_images": 3},
+        {"nof_images": 3, "times": 10},
+        {"nof_images": 5, "times": 10}
     )
     @ddt.unpack
-    def test_admin_images_page(self, nof_images):
+    def test_admin_images_page(self, nof_images, times):
         self.client.generate_images(nof_images)
 
         images_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/images")
-        ts = time.time()
-        self.driver.get(images_url)
-        te = time.time()
-        count_span = self.driver.find_element_by_class_name("table_count")
-        self.assertEquals(count_span.text, "Displaying {} items".format(nof_images))
-        
-        self.report.add_result("admin/images", nof_images, te - ts)
+
+        for i in range(0, times):
+            ts = time.time()
+            self.driver.get(images_url)
+            te = time.time()
+            count_span = self.driver.find_element_by_class_name("table_count")
+            self.assertEquals(count_span.text, "Displaying {} items".format(nof_images))
+
+            self.report.add_result("admin/images", nof_images, te - ts)
+
+    @ddt.data(
+        {"nof_volumes": 3, "times": 10},
+        {"nof_volumes": 5, "times": 10}
+    )
+    @ddt.unpack
+    def test_admin_columes_page(self, nof_volumes, times):
+        self.client.generate_volumes(nof_volumes)
+
+        volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/volumes")
+
+        for i in range(0, times):
+            ts = time.time()
+            self.driver.get(volumes_url)
+            te = time.time()
+            count_span = self.driver.find_element_by_class_name("table_count")
+            self.assertEquals(count_span.text, "Displaying {} items".format(nof_volumes))
+
+            self.report.add_result("admin/volumes", nof_volumes, te - ts)

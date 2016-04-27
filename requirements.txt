@@ -2,4 +2,5 @@ ddt==1.0.1
 pytz==2016.4
 python-glanceclient==2.0.0
 python-keystoneclient==2.3.1
+python-cinderclient==1.6.0
 selenium==2.53.2

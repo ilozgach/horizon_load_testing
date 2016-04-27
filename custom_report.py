@@ -12,10 +12,18 @@ class CustomReport:
         if horizon_page not in self.results:
             self.results[horizon_page] = {}
         if nof_instances not in self.results[horizon_page]:
-            self.results[horizon_page][nof_instances] = []
-        self.results[horizon_page][nof_instances].append(load_time)
+            self.results[horizon_page][nof_instances] = {}
+            self.results[horizon_page][nof_instances]["times"] = []
+        self.results[horizon_page][nof_instances]["times"].append(load_time)
 
     def write_results(self):
+        for horizon_page in self.results:
+            for nof_instances in self.results[horizon_page]:
+                sum = 0
+                for time in self.results[horizon_page][nof_instances]["times"]:
+                    sum += time
+                self.results[horizon_page][nof_instances]["avg"] = sum / len(self.results[horizon_page][nof_instances]["times"])
+
         suffix = (str(datetime.datetime.now())).replace(" ", "_").replace(":", "-")
         dirname = "horizon_load_test_{}".format(suffix)
         results_dir = os.path.join(os.getcwd(), dirname)
