@@ -10,6 +10,7 @@ from custom_report import CustomReport
 
 KEYSTONE_PUBLIC_URL = "http://172.16.54.195:5000/v3"
 GLANCE_PUBLIC_URL = "http://172.16.54.195:9292/v1"
+NEUTRON_PUBLIC_URL = "http://172.16.54.195:9696"
 HORIZON_BASE_URL = "http://172.16.54.195/horizon/"
 
 
@@ -18,7 +19,7 @@ class HorizonLoadTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.report = CustomReport()
-        cls.client = CustomOpenstackClient(KEYSTONE_PUBLIC_URL, GLANCE_PUBLIC_URL)
+        cls.client = CustomOpenstackClient(KEYSTONE_PUBLIC_URL, GLANCE_PUBLIC_URL, NEUTRON_PUBLIC_URL)
 
         cls.driver = webdriver.Chrome()
         login_url = urlparse.urljoin(HORIZON_BASE_URL, "auth/login")
@@ -62,7 +63,7 @@ class HorizonLoadTest(unittest.TestCase):
         {"nof_volumes": 5, "times": 10}
     )
     @ddt.unpack
-    def test_admin_columes_page(self, nof_volumes, times):
+    def test_admin_volumes_page(self, nof_volumes, times):
         self.client.generate_volumes(nof_volumes)
 
         volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/volumes")
@@ -75,3 +76,24 @@ class HorizonLoadTest(unittest.TestCase):
             self.assertEquals(count_span.text, "Displaying {} items".format(nof_volumes))
 
             self.report.add_result("admin/volumes", nof_volumes, te - ts)
+
+    @ddt.data(
+        {"nof_users": 10, "times": 10},
+        {"nof_users": 20, "times": 10}
+    )
+    @ddt.unpack
+    def test_identity_users_page(self, nof_users, times):
+        self.client.generate_users(nof_users)
+
+        users_url = urlparse.urljoin(HORIZON_BASE_URL, "identity/users")
+
+        for i in range(0, times):
+            ts = time.time()
+            self.driver.get(users_url)
+            te = time.time()
+            count_span = self.driver.find_element_by_class_name("table_count")
+            # confusing hack for heat_admin user which is not displaying on horizon users page
+            # should not significally affect time of page load
+            self.assertEquals(count_span.text, "Displaying {} items".format(nof_users - 1))
+
+            self.report.add_result("identity/users", nof_users, te - ts)

@@ -3,4 +3,7 @@ pytz==2016.4
 python-glanceclient==2.0.0
 python-keystoneclient==2.3.1
 python-cinderclient==1.6.0
+python-novaclient==4.0.0
+python-neutronclient==4.2.0
 selenium==2.53.2
+pytest==2.9.1

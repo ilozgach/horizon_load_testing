@@ -1,0 +1,26 @@
+=========== preparation ===========
+
+in custom_openstack_client.py set next variables
+
+  ADMIN_USER_ID
+  ADMIN_USER_PASSWORD
+  ADMIN_PROJECT_ID
+
+in main.py set next variables
+
+  KEYSTONE_PUBLIC_URL
+  GLANCE_PUBLIC_URL
+  NEUTRON_PUBLIC_URL
+  HORIZON_BASE_URL
+
+User ID can be fetch by using 'keystone user-list' command
+Project ID can be fetch by using 'keystone tenant-list' command
+Service URLs can be fetch by using 'keystone endpoint-list' command
+
+============ execution ============
+
+cd horizon_load_test
+virtualenv .
+source bin/activate
+pip install -r requirements.txt
+python -m unittest -v main.HorizonLoadTest

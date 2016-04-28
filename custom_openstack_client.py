@@ -3,11 +3,20 @@ from keystoneclient import session
 from keystoneclient.auth.identity import v3
 from glanceclient import Client as GlanceClient
 from cinderclient.v2 import Client as CinderClient
+from novaclient import client as NovaClientFactory
+from neutronclient.v2_0 import client as NeutronClientFactory
+from keystoneclient.v3 import client as KeystoneClientFactory
+
+ADMIN_USER_ID = "b90cd04517a346de955af12bbbdf1ac9"
+ADMIN_USER_PASSWORD = "admin"
+ADMIN_PROJECT_ID = "88418fb881a84b67b475c0ee5eadfd24"
+
 
 class CustomOpenstackClient:
-    def __init__(self, keystone_url, glance_url):
+    def __init__(self, keystone_url, glance_url, neutron_url):
         self.keystone_url = keystone_url
         self.glance_url = glance_url
+        self.neutron_url = neutron_url
 
         self.default_images = self._get_images()
         self.created_images = []
@@ -15,16 +24,64 @@ class CustomOpenstackClient:
         self.default_volumes = self._get_volumes()
         self.created_volumes = []
 
+        self.test_network_id = self._create_test_network()
+        self.default_networks = self._get_networks()
+
+        self.test_flavor_id = self._create_test_flavor()
+        self.default_flavors = self._get_flavors()
+        self.default_servers = self._get_servers()
+
+        self.default_users = self._get_users()
+        self.created_users = []
+
+    def cleanup(self):
+        self._cleanup_images()
+        self._cleanup_volumes()
+        self._cleanup_networks()
+        self._cleanup_flavors()
+        self._cleanup_users()
+
     # --------------------------------------------------------------------
     #                           Keystone stuff
     # --------------------------------------------------------------------
 
     def _authenticate(self):
-        auth = v3.Password(auth_url='http://172.16.54.195:5000/v3',
-                           user_id='b90cd04517a346de955af12bbbdf1ac9',
-                           password='admin',
-                           project_id='88418fb881a84b67b475c0ee5eadfd24')
+        auth = v3.Password(auth_url=self.keystone_url,
+                           user_id=ADMIN_USER_ID,
+                           password=ADMIN_USER_PASSWORD,
+                           project_id=ADMIN_PROJECT_ID)
         return session.Session(auth=auth)
+
+    def _get_users(self):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+
+        users = keystone.users.list()
+        return [{"id": user.id} for user in users]
+
+    def generate_users(self, nof_users):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+
+        if len(self.default_users) + len(self.created_users) < nof_users:
+            nof_users_to_create = nof_users - len(self.default_users) - len(self.created_users)
+            for i in range(0, nof_users_to_create):
+                user = keystone.users.create(name="horizon_load_test_user_{}".format(i))
+                self.created_users.append({"id": user.id})
+        elif len(self.default_users) + len(self.created_users) > nof_users:
+            nof_users_to_delete = len(self.default_users) + len(self.created_users) - nof_users
+            if nof_users_to_delete > len(self.created_users):
+                raise Exception("Cannot delete such number of users")
+            for i in range(nof_users_to_delete):
+                user_to_delete = self.created_users.pop()
+                print "deleting user {}".format(str(user_to_delete))
+                keystone.users.delete(user_to_delete["id"])
+
+    def _cleanup_users(self):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+        for user in self.created_users:
+            keystone.users.delete(user["id"])
 
     # --------------------------------------------------------------------
     #                           Glance stuff
@@ -131,6 +188,72 @@ class CustomOpenstackClient:
                 volume_to_delete = self.created_volumes.pop()
                 self._delete_volume(volume_to_delete["id"])
 
-    def cleanup(self):
-        self._cleanup_images()
-        self._cleanup_volumes()
+    # --------------------------------------------------------------------
+    #                           Nova stuff
+    # --------------------------------------------------------------------
+
+    def _get_servers(self):
+        session = self._authenticate()
+        nova = NovaClientFactory.Client("2.0", session=session)
+
+        servers = nova.servers.list()
+        return [{"id": server.id} for server in servers]
+
+    def _get_flavors(self):
+        session = self._authenticate()
+        nova = NovaClientFactory.Client("2.0", session=session)
+
+        flavors = nova.flavors.list()
+        return [{"id": flavor.id} for flavor in flavors]
+
+    def _create_test_flavor(self):
+        session = self._authenticate()
+        nova = NovaClientFactory.Client("2.0", session=session)
+
+        flavor = nova.flavors.create(name="horizon_load_test_flavor_for_servers",
+                                     ram=64,
+                                     vcpus=1,
+                                     disk=1)
+        return flavor.id
+
+    def _cleanup_flavors(self):
+        session = self._authenticate()
+        nova = NovaClientFactory.Client("2.0", session=session)
+
+        flavor = nova.flavors.get(self.test_flavor_id)
+        nova.flavors.delete(flavor)
+
+    # --------------------------------------------------------------------
+    #                           Neutron stuff
+    # --------------------------------------------------------------------
+
+    def _get_networks(self):
+        session = self._authenticate()
+        neutron = NeutronClientFactory.Client(version="2",
+                                              endpoint_url=self.neutron_url,
+                                              token=session.get_token())
+
+        networks = neutron.list_networks()
+        return [{"id": network["id"]} for network in networks["networks"]]
+
+    def _create_test_network(self):
+        session = self._authenticate()
+        neutron = NeutronClientFactory.Client(version="2",
+                                              endpoint_url=self.neutron_url,
+                                              token=session.get_token())
+
+        network = {"name": "horizon_load_test_network_for_servers", "admin_state_up": True}
+        neutron.create_network({"network": network})
+        networks = neutron.list_networks(name="horizon_load_test_network_for_servers")
+        network_id = networks['networks'][0]['id']
+        subnet = {"network_id": network_id, "cidr": "10.0.0.0/24", "ip_version": 4}
+        neutron.create_subnet({"subnet": subnet})
+        return network_id
+
+    def _cleanup_networks(self):
+        session = self._authenticate()
+        neutron = NeutronClientFactory.Client(version="2",
+                                              endpoint_url=self.neutron_url,
+                                              token=session.get_token())
+        # delete test network
+        neutron.delete_network(self.test_network_id)
