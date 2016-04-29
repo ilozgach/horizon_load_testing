@@ -1,12 +1,12 @@
 =========== preparation ===========
 
-in custom_openstack_client.py set next variables
+In custom_openstack_client.py set next variables
 
   ADMIN_USER_ID
   ADMIN_USER_PASSWORD
   ADMIN_PROJECT_ID
 
-in main.py set next variables
+In main.py set next variables
 
   KEYSTONE_PUBLIC_URL
   GLANCE_PUBLIC_URL
@@ -16,6 +16,13 @@ in main.py set next variables
 User ID can be fetch by using 'keystone user-list' command
 Project ID can be fetch by using 'keystone tenant-list' command
 Service URLs can be fetch by using 'keystone endpoint-list' command
+
+!!! DO NOT FORGET TO UPDATE QUOTAS !!!
+Check Admin -> System -> Default page in Horizon and set quotas to make possible
+create needed number of volumes, snapshots and so on.
+
+!!! DO NOT FORGET TO NUMBER OF ITEMS PER PAGE !!!
+Got to Admin -> Settings -> User Settings -> Items Per Page and set needed value.
 
 ============ execution ============
 

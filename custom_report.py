@@ -1,7 +1,8 @@
 import json
-
 import os
 import datetime
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 class CustomReport:
@@ -17,6 +18,8 @@ class CustomReport:
         self.results[horizon_page][nof_instances]["times"].append(load_time)
 
     def write_results(self):
+
+
         for horizon_page in self.results:
             for nof_instances in self.results[horizon_page]:
                 sum = 0

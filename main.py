@@ -46,7 +46,8 @@ class HorizonLoadTest(unittest.TestCase):
             print "Already logged in"
 
     @ddt.data(
-        {"nof_images": 100, "times": 100},
+        # there test requires bin number of items per page
+        {"nof_images": 100, "times": 100}
         {"nof_images": 500, "times": 100}
     )
     @ddt.unpack
@@ -66,7 +67,8 @@ class HorizonLoadTest(unittest.TestCase):
             self.report.add_result("admin/images", nof_images, te - ts)
 
     @ddt.data(
-        {"nof_volumes": 100, "times": 100},
+        # there test requires bin number of items per page
+        {"nof_volumes": 100, "times": 100}
         {"nof_volumes": 500, "times": 100}
     )
     @ddt.unpack
