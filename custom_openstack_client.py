@@ -1,4 +1,5 @@
 import time
+import random
 from keystoneclient import session
 from keystoneclient.auth.identity import v3
 from glanceclient import Client as GlanceClient
@@ -7,9 +8,9 @@ from novaclient import client as NovaClientFactory
 from neutronclient.v2_0 import client as NeutronClientFactory
 from keystoneclient.v3 import client as KeystoneClientFactory
 
-ADMIN_USER_ID = "b90cd04517a346de955af12bbbdf1ac9"
+ADMIN_USER_ID = "cd761c068199487898fa1d7b9edb1cff"
 ADMIN_USER_PASSWORD = "admin"
-ADMIN_PROJECT_ID = "88418fb881a84b67b475c0ee5eadfd24"
+ADMIN_PROJECT_ID = "47b4db36d1584adebec7031623356dd9"
 
 
 class CustomOpenstackClient:
@@ -66,7 +67,8 @@ class CustomOpenstackClient:
         if len(self.default_users) + len(self.created_users) < nof_users:
             nof_users_to_create = nof_users - len(self.default_users) - len(self.created_users)
             for i in range(0, nof_users_to_create):
-                user = keystone.users.create(name="horizon_load_test_user_{}".format(i))
+                rand_hash = random.getrandbits(128)
+                user = keystone.users.create(name="horizon_load_test_user_%032x" % rand_hash)
                 self.created_users.append({"id": user.id})
         elif len(self.default_users) + len(self.created_users) > nof_users:
             nof_users_to_delete = len(self.default_users) + len(self.created_users) - nof_users
