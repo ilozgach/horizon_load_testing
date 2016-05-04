@@ -29,10 +29,19 @@ print below_threshold
 # fig, ax = plt.subplots()
 # ax.bar(x, below_threshold)
 # ax.bar(x, above_threshold, bottom=below_threshold)
-plt.bar(x, values)
+plt.bar(range(len(values)), values)
 
 # horizontal line indicating the threshold
-ax.plot([0., 4.5], [threshold, threshold], "k--")
+plt.plot([0, len(values)], [threshold, threshold], "k--")
+plt.ylabel("time (sec)")
+plt.title("Time of page trololo")
+plt.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
+#plt.annotate('avg', xy=(0, threshold), xytext=(len(values) / 5, threshold + 10), arrowprops=dict(facecolor='black', shrink=0.05))
+yticks = [0, threshold, max(values)]
+for i in range(1, 4):
+	yticks.append(0 + i * int(max(values) / 5))
+yticks = sorted(yticks)
+plt.yticks(yticks)
 
 pp.savefig()
 plt.close()
