@@ -158,18 +158,29 @@ class CustomOpenstackClient:
             if status == volume.status:
                 break
             else:
-                time.sleep(1)
+                time.sleep(3)
 
-    def _delete_volume(self, volume_id):
-        session = self._authenticate()
-        cinder = CinderClient(session=session)
+    def _delete_volume(self, volume_id, cinder=None):
+        if cinder is None:
+            session = self._authenticate()
+            cinder = CinderClient(session=session)
+
         cinder.volumes.delete(volume_id)
+        while True:
+            volumes = self._get_volumes()
+            found = False
+            for volume in volumes:
+                if volume["id"] == volume_id:
+                    found = True
+            if not found:
+                break
+            time.sleep(3)
 
     def _cleanup_volumes(self):
         session = self._authenticate()
         cinder = CinderClient(session=session)
         for volume in self.created_volumes:
-            cinder.volumes.delete(volume["id"])
+            self._delete_volume(volume["id"], cinder)
 
     def generate_volumes(self, nof_volumes):
         if len(self.default_volumes) + len(self.created_volumes) < nof_volumes:

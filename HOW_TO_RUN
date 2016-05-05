@@ -21,9 +21,6 @@ Service URLs can be fetch by using 'keystone endpoint-list' command
 Check Admin -> System -> Default page in Horizon and set quotas to make possible
 create needed number of volumes, snapshots and so on.
 
-!!! DO NOT FORGET TO NUMBER OF ITEMS PER PAGE !!!
-Got to Admin -> Settings -> User Settings -> Items Per Page and set needed value.
-
 ============ execution ============
 
 cd horizon_load_test
