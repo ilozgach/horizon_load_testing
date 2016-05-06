@@ -70,64 +70,157 @@ class HorizonLoadTest(unittest.TestCase):
 
 
     # @ddt.data(
-    #     # there test requires bin number of items per page
-    #     {"nof_images": 10, "times": 20},
-    #     {"nof_images": 30, "times": 20}
+    #     {"nof_images": 3, "times": 5}
     # )
     # @ddt.unpack
     # def test_admin_images_page(self, nof_images, times):
     #     self.client.generate_images(nof_images)
     #     self.login_driver()
-
+    #
     #     images_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/images")
-
+    #
     #     for i in range(0, times):
     #         ts = time.time()
     #         self.driver.get(images_url)
     #         te = time.time()
     #         count_span = self.driver.find_element_by_class_name("table_count")
     #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_images))
-
+    #
     #         self.report.add_result("admin/images", nof_images, te - ts)
-
-    @ddt.data(
-        # there test requires bin number of items per page
-        {"nof_volumes": 10, "times": 20},
-        {"nof_volumes": 30, "times": 20}
-    )
-    @ddt.unpack
-    def test_admin_volumes_page(self, nof_volumes, times):
-        self.client.generate_volumes(nof_volumes)
-        self.login_driver()
-        self.set_number_of_items_per_page(nof_volumes)
-
-        volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/volumes")
-
-        for i in range(0, times):
-            ts = time.time()
-            self.driver.get(volumes_url)
-            te = time.time()
-            count_span = self.driver.find_element_by_class_name("table_count")
-            self.assertEquals(count_span.text, "Displaying {} items".format(nof_volumes))
-
-            self.report.add_result("admin/volumes", nof_volumes, te - ts)
-
+    #
     # @ddt.data(
-    #     {"nof_users": 10, "times": 20},
-    #     {"nof_users": 30, "times": 20}
+    #     {"nof_volumes": 3, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_admin_volumes_page(self, nof_volumes, times):
+    #     self.client.generate_volumes(nof_volumes)
+    #     self.login_driver()
+    #     self.set_number_of_items_per_page(nof_volumes)
+    #
+    #     volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/volumes")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(volumes_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_volumes))
+    #
+    #         self.report.add_result("admin/volumes", nof_volumes, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_users": 15, "times": 5}
     # )
     # @ddt.unpack
     # def test_identity_users_page(self, nof_users, times):
     #     self.client.generate_users(nof_users)
     #     self.login_driver()
-
+    #
     #     users_url = urlparse.urljoin(HORIZON_BASE_URL, "identity/users")
-
+    #
     #     for i in range(0, times):
     #         ts = time.time()
     #         self.driver.get(users_url)
     #         te = time.time()
     #         count_span = self.driver.find_element_by_class_name("table_count")
     #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_users))
-
+    #
     #         self.report.add_result("identity/users", nof_users, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_instances": 3, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_admin_instances_page(self, nof_instances, times):
+    #     self.client.generate_instances(nof_instances)
+    #     self.login_driver()
+    #
+    #     instances_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/instances")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(instances_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_instances))
+    #
+    #         self.report.add_result("identity/users", nof_instances, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_instances": 3, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_project_instances_page(self, nof_instances, times):
+    #     self.client.generate_instances(nof_instances)
+    #     self.login_driver()
+    #
+    #     instances_url = urlparse.urljoin(HORIZON_BASE_URL, "project/instances")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(instances_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_instances))
+    #
+    #         self.report.add_result("identity/users", nof_instances, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_volumes": 3, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_project_volumes_page(self, nof_volumes, times):
+    #     self.client.generate_volumes(nof_volumes)
+    #     self.login_driver()
+    #     self.set_number_of_items_per_page(nof_volumes)
+    #
+    #     volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "project/volumes")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(volumes_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_volumes))
+    #
+    #         self.report.add_result("project/volumes", nof_volumes, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_networks": 8, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_admin_networks_page(self, nof_networks, times):
+    #     self.client.generate_networks(nof_networks)
+    #     self.login_driver()
+    #     self.set_number_of_items_per_page(nof_networks)
+    #
+    #     volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/networks")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(volumes_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_networks))
+    #
+    #         self.report.add_result("admin/networks", nof_networks, te - ts)
+    #
+    # @ddt.data(
+    #     {"nof_routers": 8, "times": 5}
+    # )
+    # @ddt.unpack
+    # def test_admin_routers_page(self, nof_routers, times):
+    #     self.client.generate_routers(nof_routers)
+    #     self.login_driver()
+    #     self.set_number_of_items_per_page(nof_routers)
+    #
+    #     volumes_url = urlparse.urljoin(HORIZON_BASE_URL, "admin/routers")
+    #
+    #     for i in range(0, times):
+    #         ts = time.time()
+    #         self.driver.get(volumes_url)
+    #         te = time.time()
+    #         count_span = self.driver.find_element_by_class_name("table_count")
+    #         self.assertEquals(count_span.text, "Displaying {} items".format(nof_routers))
+    #
+    #         self.report.add_result("admin/routers", nof_routers, te - ts)
