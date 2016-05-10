@@ -8,16 +8,15 @@ from novaclient import client as NovaClientFactory
 from neutronclient.v2_0 import client as NeutronClientFactory
 from keystoneclient.v3 import client as KeystoneClientFactory
 
-ADMIN_USER_ID = "cd761c068199487898fa1d7b9edb1cff"
-ADMIN_USER_PASSWORD = "admin"
-ADMIN_PROJECT_ID = "47b4db36d1584adebec7031623356dd9"
-
 
 class CustomOpenstackClient:
-    def __init__(self, keystone_url, glance_url, neutron_url):
-        self.keystone_url = keystone_url
-        self.glance_url = glance_url
-        self.neutron_url = neutron_url
+    def __init__(self, conf):
+        self.admin_user_id = conf["admin_user_id"]
+        self.admin_user_password = conf["admin_user_password"]
+        self.admin_project_id = conf["admin_project_id"]
+        self.keystone_url = conf["keystone_public_url"]
+        self.glance_url = conf["glance_public_url"]
+        self.neutron_url = conf["neutron_public_url"]
 
         self.test_image = self._create_test_image()
         self.default_images = self._get_images()
@@ -58,6 +57,7 @@ class CustomOpenstackClient:
         self._cleanup_routers()
         self._cleanup_flavors()
         self._cleanup_users()
+        self._cleanup_volume_snapshots()
 
     # --------------------------------------------------------------------
     #                           Keystone stuff
@@ -65,9 +65,9 @@ class CustomOpenstackClient:
 
     def _authenticate(self):
         auth = v3.Password(auth_url=self.keystone_url,
-                           user_id=ADMIN_USER_ID,
-                           password=ADMIN_USER_PASSWORD,
-                           project_id=ADMIN_PROJECT_ID)
+                           user_id=self.admin_user_id,
+                           password=self.admin_user_password,
+                           project_id=self.admin_project_id)
         return session.Session(auth=auth)
 
     def _get_users(self):
@@ -205,6 +205,14 @@ class CustomOpenstackClient:
             else:
                 time.sleep(3)
 
+    def _wait_for_volume_snapshot_status(self, cinder, volume_snapshot_id, status):
+        while True:
+            volume = cinder.volume_snapshots.get(volume_snapshot_id)
+            if status == volume.status:
+                break
+            else:
+                time.sleep(3)
+
     def _delete_volume(self, volume, cinder=None):
         if cinder is None:
             session = self._authenticate()
@@ -227,6 +235,28 @@ class CustomOpenstackClient:
         for volume in self.created_volumes:
             self._delete_volume(volume, cinder)
 
+    def _delete_volume_snapshot(self, volume_snapshot, cinder=None):
+        if cinder is None:
+            session = self._authenticate()
+            cinder = CinderClient(session=session)
+
+        cinder.volume_snapshots.delete(volume_snapshot)
+        while True:
+            volume_snapshots = self._get_volume_snapshots()
+            found = False
+            for vsnap in volume_snapshots:
+                if vsnap.id == volume_snapshot.id:
+                    found = True
+            if not found:
+                break
+            time.sleep(3)
+
+    def _cleanup_volume_snapshots(self):
+        session = self._authenticate()
+        cinder = CinderClient(session=session)
+        for volume_snapshot in self.created_volume_snapshots:
+            self._delete_volume_snapshot(volume_snapshot, cinder)
+
     def generate_volumes(self, nof_volumes):
         if len(self.default_volumes) + len(self.created_volumes) < nof_volumes:
             session = self._authenticate()
@@ -246,7 +276,21 @@ class CustomOpenstackClient:
                 self._delete_volume(volume_to_delete)
 
     def generate_volume_snapshots(self, nof_snapshots):
-        pass
+        if len(self.default_volume_snapshots) + len(self.created_volume_snapshots) < nof_snapshots:
+            session = self._authenticate()
+            cinder = CinderClient(session=session)
+            nof_volume_snapshots_to_create = nof_snapshots - len(self.default_volume_snapshots) - len(self.created_volume_snapshots)
+            for i in range(0, nof_volume_snapshots_to_create):
+                volume_snapshot = cinder.volume_snapshots.create(self.test_volume.id)
+                self._wait_for_volume_snapshot_status(cinder, volume_snapshot.id, "available")
+                self.created_volume_snapshots.append(volume_snapshot)
+        elif len(self.default_volume_snapshots) + len(self.created_volume_snapshots) > nof_snapshots:
+            nof_volume_snapshots_to_delete = len(self.default_volume_snapshots) + len(self.created_volume_snapshots) - nof_snapshots
+            if nof_volume_snapshots_to_delete > len(self.created_volume_snapshots):
+                raise Exception("Cannot delete such number of volume snapshots")
+            for i in range(nof_volume_snapshots_to_delete):
+                volume_snapshot_to_delete = self.created_volume_snapshots.pop()
+                self._delete_volume_snapshot(volume_snapshot_to_delete)
 
     # --------------------------------------------------------------------
     #                           Nova stuff
@@ -320,6 +364,9 @@ class CustomOpenstackClient:
         nova = NovaClientFactory.Client("2.0", session=session)
         for server in self.created_servers:
             self._delete_server(server, nova)
+
+    def generate_flavors(self, nof_flavors):
+        pass
 
     # --------------------------------------------------------------------
     #                           Neutron stuff

@@ -1,0 +1,10 @@
+{
+  "admin_user_id": "cd761c068199487898fa1d7b9edb1cff",
+  "admin_user_password": "admin",
+  "admin_project_id": "47b4db36d1584adebec7031623356dd9",
+  "horizon_base_url": "http://172.16.53.131/horizon/",
+  "keystone_public_url": "http://172.16.53.131:5000/v3",
+  "glance_public_url": "http://172.16.53.131:9292/v1",
+  "neutron_public_url": "http://172.16.53.131:9696",
+  "grid_url": "http://localhost:4444/wd/hub"
+}
