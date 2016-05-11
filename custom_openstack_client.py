@@ -36,11 +36,14 @@ class CustomOpenstackClient:
 
         self.test_flavor = self._create_test_flavor()
         self.default_flavors = self._get_flavors()
+        self.created_flavors = []
         self.default_servers = self._get_servers()
         self.created_servers = []
 
         self.default_users = self._get_users()
         self.created_users = []
+        self.default_projects = self._get_projects()
+        self.created_projects = []
 
     def _get_neutron_client(self):
         session = self._authenticate()
@@ -52,12 +55,13 @@ class CustomOpenstackClient:
     def cleanup(self):
         self._cleanup_servers()
         self._cleanup_images()
+        self._cleanup_volume_snapshots()
         self._cleanup_volumes()
         self._cleanup_networks()
         self._cleanup_routers()
         self._cleanup_flavors()
         self._cleanup_users()
-        self._cleanup_volume_snapshots()
+        self._cleanup_projects()
 
     # --------------------------------------------------------------------
     #                           Keystone stuff
@@ -75,7 +79,7 @@ class CustomOpenstackClient:
         keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
 
         users = keystone.users.list()
-        return [{"id": user.id} for user in users]
+        return [user for user in users]
 
     def generate_users(self, nof_users):
         session = self._authenticate()
@@ -86,20 +90,53 @@ class CustomOpenstackClient:
             for i in range(0, nof_users_to_create):
                 rand_hash = random.getrandbits(128)
                 user = keystone.users.create(name="horizon_load_test_user_%032x" % rand_hash)
-                self.created_users.append({"id": user.id})
+                self.created_users.append(user)
         elif len(self.default_users) + len(self.created_users) > nof_users:
             nof_users_to_delete = len(self.default_users) + len(self.created_users) - nof_users
             if nof_users_to_delete > len(self.created_users):
                 raise Exception("Cannot delete such number of users")
             for i in range(nof_users_to_delete):
                 user_to_delete = self.created_users.pop()
-                keystone.users.delete(user_to_delete["id"])
+                keystone.users.delete(user_to_delete.id)
 
     def _cleanup_users(self):
         session = self._authenticate()
         keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
         for user in self.created_users:
-            keystone.users.delete(user["id"])
+            keystone.users.delete(user.id)
+
+    def _get_projects(self):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+
+        projects = keystone.projects.list()
+        return [project for project in projects]
+
+    def generate_projects(self, nof_projects):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+
+        if len(self.default_projects) + len(self.created_projects) < nof_projects:
+            nof_projects_to_create = nof_projects - len(self.default_projects) - len(self.created_projects)
+            for i in range(0, nof_projects_to_create):
+                rand_hash = random.getrandbits(128)
+                project = keystone.projects.create(name="horizon_load_test_project_%032x" % rand_hash,
+                                                domain="default")
+                self.created_projects.append(project)
+        elif len(self.default_projects) + len(self.created_projects) > nof_projects:
+            nof_projects_to_delete = len(self.default_projects) + len(self.created_projects) - nof_projects
+            if nof_projects_to_delete > len(self.created_projects):
+                raise Exception("Cannot delete such number of projects")
+            for i in range(nof_projects_to_delete):
+                project_to_delete = self.created_users.pop()
+                keystone.users.delete(project_to_delete)
+
+    def _cleanup_projects(self):
+        session = self._authenticate()
+        keystone = KeystoneClientFactory.Client(token=session.get_token(), endpoint=self.keystone_url)
+
+        for project in self.created_projects:
+            keystone.projects.delete(project)
 
     # --------------------------------------------------------------------
     #                           Glance stuff
@@ -232,6 +269,7 @@ class CustomOpenstackClient:
     def _cleanup_volumes(self):
         session = self._authenticate()
         cinder = CinderClient(session=session)
+        self._delete_volume(self.test_volume)
         for volume in self.created_volumes:
             self._delete_volume(volume, cinder)
 
@@ -307,7 +345,7 @@ class CustomOpenstackClient:
         nova = NovaClientFactory.Client("2.0", session=session)
 
         flavors = nova.flavors.list()
-        return [{"id": flavor.id} for flavor in flavors]
+        return [flavor for flavor in flavors]
 
     def _create_test_flavor(self):
         session = self._authenticate()
@@ -319,10 +357,28 @@ class CustomOpenstackClient:
                                      disk=1)
         return flavor
 
+    def _delete_flavor(self, flavor, nova=None):
+        if nova is None:
+            session = self._authenticate()
+            nova = NovaClientFactory.Client("2.0", session=session)
+
+        nova.flavors.delete(flavor)
+        while True:
+            flavors = self._get_flavors()
+            found = False
+            for flv in flavors:
+                if flv.id == flavor.id:
+                    found = True
+            if not found:
+                break
+            time.sleep(3)
+
     def _cleanup_flavors(self):
         session = self._authenticate()
         nova = NovaClientFactory.Client("2.0", session=session)
-        nova.flavors.delete(self.test_flavor)
+        self._delete_flavor(self.test_flavor)
+        for flavor in self.created_flavors:
+            self._delete_flavor(flavor)
 
     def generate_instances(self, nof_instances):
         if len(self.default_servers) + len(self.created_servers) < nof_instances:
@@ -366,7 +422,24 @@ class CustomOpenstackClient:
             self._delete_server(server, nova)
 
     def generate_flavors(self, nof_flavors):
-        pass
+        if len(self.default_flavors) + len(self.created_flavors) < nof_flavors:
+            session = self._authenticate()
+            nova = NovaClientFactory.Client("2.0", session=session)
+            nof_flavors_to_create = nof_flavors - len(self.default_flavors) - len(self.created_flavors)
+            for i in range(0, nof_flavors_to_create):
+                rand_hash = random.getrandbits(128)
+                flavor = nova.flavors.create(name="horizon_load_test_flavor_%032x" % rand_hash,
+                                             ram=64,
+                                             vcpus=1,
+                                             disk=1)
+                self.created_flavors.append(flavor)
+        elif len(self.default_flavors) + len(self.created_flavors) > nof_flavors:
+            nof_flavors_to_delete = len(self.default_flavors) + len(self.created_flavors) - nof_flavors
+            if nof_flavors_to_delete > len(self.created_flavors):
+                raise Exception("Cannot delete such number of flavors")
+            for i in range(nof_flavors_to_delete):
+                flavor_to_delete = self.created_flavors.pop()
+                self._delete_flavor(flavor_to_delete)
 
     # --------------------------------------------------------------------
     #                           Neutron stuff
