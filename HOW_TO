@@ -1,0 +1,38 @@
+=========== How to install test suite ===========
+
+git clone https://github.com/ilozgach/horizon_load_testing.git
+cd horizon_load_testing
+virtualenv .
+source bin/activate
+sudo apt-get install libpng-dev libjpeg8-dev libfreetype6-dev
+pip install -r requirements.txt
+
+=========== How to configure test suite ===========
+
+Open and edit conf.json file, fill all parameters. To get parameters use next commands:
+  admin_user_id => keystone user-list
+  admin_user_password => use your admin password
+  admin_project_id => keystone tenant-list
+  horizon_base_url => user your Horizon url
+  keystone_public_url, glance_public_url, neutron_public_url => keystone endpoint-list
+  grid_url => if you are using Selenium grid put your configuration
+
+=========== How to configure/add tests ===========
+In main.py edit section with tests, each test is described by python dictionarylike that
+
+{"page": "admin/images", "instance_generator": "generate_images", "nof_instances": 5, "times": 20, "concurrency": 1}
+
+  page - Horizon page to be tested
+  instance_generator - method name to generate instances on that page, follow CustomOpenstackClient class to get names
+  nof_instances - number of instances to be generated
+  times - number of times to open Horizon page
+  concurrency - 1 if you running local test, >1 if you using Selenium grid, this parameter simulates concurrent users
+
+=========== How to run ===========
+python -m unittest -v main.HorizonLoadTest
+
+=========== Where results are stored ===========
+
+Each run creates new folder in current directory with name horizon_load_test_<start_time>. Open this folder, it contains two files:
+  results.json - all results in JSON format
+  results.pdf - graphs

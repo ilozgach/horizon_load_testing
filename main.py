@@ -130,7 +130,7 @@ class HorizonLoadTest(unittest.TestCase):
          "concurrency": 1},
         {"page": "admin/flavors",
          "instance_generator": "generate_flavors",
-         "nof_instances": 5,
+         "nof_instances": 15,
          "times": 20,
          "concurrency": 1}
     )

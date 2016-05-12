@@ -7,3 +7,4 @@ python-novaclient==4.0.0
 python-neutronclient==4.2.0
 selenium==2.53.2
 pytest==2.9.1
+-e git://github.com/matplotlib/matplotlib.git#egg=python-matplotlib
