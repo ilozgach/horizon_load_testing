@@ -9,6 +9,10 @@ import time
 import os
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from custom_openstack_client import CustomOpenstackClient
 from custom_report import CustomReport
@@ -67,75 +71,148 @@ class HorizonLoadTest(unittest.TestCase):
     #     btn_update.click()
 
     def worker(self, driver, page, nof_instances, times, results):
+        nof_fails = 0
         for i in range(0, times):
-            ts = time.time()
-            driver.get(page)
-            te = time.time()
-            count_span = driver.find_element_by_class_name("table_count")
-
-            self.assertTrue("Displaying {} items".format(nof_instances) in count_span.text)
-
-            results.append(te - ts)
+            try:
+                ts = time.time()
+                driver.get(page)
+                count_span = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "table_count")))
+                te = time.time()
+                self.assertTrue("Displaying {} items".format(nof_instances) in count_span.text)
+                results.append(te - ts)
+            except NoSuchElementException:
+                nof_fails += 1
+            except TimeoutException:
+                nof_fails += 1
+            if nof_fails > int(times / 100 * 5):
+                print "Number of fails exceeded, nof_fails = {}, iteration = {}".format(nof_fails, i)
+                self.assertTrue(nof_fails <= int(times / 100 * 5))
 
     @ddt.data(
-        {"page": "admin/images",
-         "instance_generator": "generate_images",
-         "nof_instances": 5,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "admin/volumes",
+        # {"page": "admin/images",
+        #  "instance_generator": "generate_images",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/images",
+        #  "instance_generator": "generate_images",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "admin/volumes",
+        #  "instance_generator": "generate_volumes",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/volumes",
+        #  "instance_generator": "generate_volumes",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        {"page": "project/volumes",
          "instance_generator": "generate_volumes",
-         "nof_instances": 5,
-         "times": 20,
+         "nof_instances": 100,
+         "times": 100,
          "concurrency": 1},
         {"page": "project/volumes",
          "instance_generator": "generate_volumes",
-         "nof_instances": 5,
-         "times": 20,
+         "nof_instances": 500,
+         "times": 100,
          "concurrency": 1},
-        {"page": "admin/volumes/?tab=volumes_group_tabs__snapshots_tab",
-         "instance_generator": "generate_volume_snapshots",
-         "nof_instances": 5,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "identity/users",
-         "instance_generator": "generate_users",
-         "nof_instances": 15,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "identity",
-         "instance_generator": "generate_projects",
-         "nof_instances": 15,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "admin/instances",
+
+        # {"page": "admin/volumes/?tab=volumes_group_tabs__snapshots_tab",
+        #  "instance_generator": "generate_volume_snapshots",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/volumes/?tab=volumes_group_tabs__snapshots_tab",
+        #  "instance_generator": "generate_volume_snapshots",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "identity/users",
+        #  "instance_generator": "generate_users",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "identity/users",
+        #  "instance_generator": "generate_users",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "identity",
+        #  "instance_generator": "generate_projects",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "identity",
+        #  "instance_generator": "generate_projects",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "admin/instances",
+        #  "instance_generator": "generate_instances",
+        #  "nof_instances": 30,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/instances",
+        #  "instance_generator": "generate_instances",
+        #  "nof_instances": 70,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        {"page": "project/instances",
          "instance_generator": "generate_instances",
-         "nof_instances": 5,
-         "times": 20,
+         "nof_instances": 30,
+         "times": 100,
          "concurrency": 1},
         {"page": "project/instances",
          "instance_generator": "generate_instances",
-         "nof_instances": 5,
-         "times": 20,
+         "nof_instances": 70,
+         "times": 100,
          "concurrency": 1},
-        {"page": "admin/networks",
-         "instance_generator": "generate_networks",
-         "nof_instances": 5,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "admin/routers",
-         "instance_generator": "generate_routers",
-         "nof_instances": 5,
-         "times": 20,
-         "concurrency": 1},
-        {"page": "admin/flavors",
-         "instance_generator": "generate_flavors",
-         "nof_instances": 15,
-         "times": 20,
-         "concurrency": 1}
+
+        # {"page": "admin/networks",
+        #  "instance_generator": "generate_networks",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/networks",
+        #  "instance_generator": "generate_networks",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "admin/routers",
+        #  "instance_generator": "generate_routers",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/routers",
+        #  "instance_generator": "generate_routers",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1},
+
+        # {"page": "admin/flavors",
+        #  "instance_generator": "generate_flavors",
+        #  "nof_instances": 100,
+        #  "times": 100,
+        #  "concurrency": 1},
+        # {"page": "admin/flavors",
+        #  "instance_generator": "generate_flavors",
+        #  "nof_instances": 500,
+        #  "times": 100,
+        #  "concurrency": 1}
     )
     @ddt.unpack
-    def test_admin_volume_snapshots_page(self, page, instance_generator, nof_instances, times, concurrency):
+    def test_page(self, page, instance_generator, nof_instances, times, concurrency):
+        print "Testing {} page".format(page)
         page_url = urlparse.urljoin(self.conf["horizon_base_url"], page)
         getattr(self.client, instance_generator)(nof_instances)
 
