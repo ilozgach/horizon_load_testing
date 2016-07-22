@@ -1,7 +1,7 @@
 {
-  "admin_user_id": "91bed3d6a5964e3198f26c5580b00d30",
+  "admin_user_id": "7b844726e5454d2181c481997f4ac84a",
   "admin_user_password": "admin",
-  "admin_project_id": "7fb9fb6e53a94606b1587f1292e19978",
+  "admin_project_id": "7246936aba634568a1991abfac0ffeaa",
   "horizon_base_url": "http://172.16.47.232/horizon/",
   "keystone_public_url": "http://172.16.47.232:5000/v3",
   "glance_public_url": "http://172.16.47.232:9292",
