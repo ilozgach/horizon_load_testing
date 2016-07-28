@@ -1,5 +1,6 @@
 =========== How to install test suite ===========
 
+sudo apt-get install libfreetype6-dev libxft-dev build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev firefox xvfb git unzip python-virtualenv python-pil scrot xvfb xserver-xephyr vnc4server libjpeg8-dev libpng-dev chromium-browser -y
 wget http://chromedriver.storage.googleapis.com/2.22/chromedriver_linux64.zip
 unzip chromedriver_linux64.zip
 sudo mv chromedriver /usr/local/bin/
@@ -7,7 +8,6 @@ git clone https://github.com/ilozgach/horizon_load_testing.git
 cd horizon_load_testing
 virtualenv .
 source bin/activate
-sudo apt-get install libpng-dev libjpeg8-dev libfreetype6-dev
 pip install -r requirements.txt
 
 =========== How to configure test suite ===========

@@ -7,6 +7,7 @@ import ddt as ddt
 import time
 
 import os
+from pyvirtualdisplay import Display
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
@@ -16,6 +17,10 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from custom_openstack_client import CustomOpenstackClient
 from custom_report import CustomReport
+
+display = Display(visible=0, size=(1920, 1080))
+display.start()
+
 
 @ddt.ddt
 class HorizonLoadTest(unittest.TestCase):
