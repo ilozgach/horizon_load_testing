@@ -6,7 +6,7 @@ admin_user_id = os.popen("keystone user-list | grep admin | head -n 1 | cut -d'|
 admin_user_password = "admin"
 
 admin_project_id = os.popen("keystone tenant-list | grep admin | head -n 1 | cut -d'|' -f 2").read().strip()
-horizon_base_url = os.popen("keystone endpoint-list | grep 9292 | head -n 1 | cut -d'|' -f 4").read().strip().replace(":9292", "")
+horizon_base_url = os.popen("keystone endpoint-list | grep 9696 | head -n 1 | cut -d'|' -f 4").read().strip().replace(":9292", "")
 keystone_public_url = os.popen("keystone endpoint-list | grep 5000 | head -n 1 | cut -d'|' -f 4").read().strip().replace('v2.0', 'v3')
 
 glance_public_url = os.popen("keystone endpoint-list | grep 9292 | head -n 1 | cut -d'|' -f 4").read().strip()
@@ -18,7 +18,6 @@ with open('./conf.json', "r") as data_file:
     data = json.load(data_file)
 
     data["admin_user_id"] = admin_user_id
-    data["admin_user_password"] = admin_user_password
     data["admin_user_password"] = admin_user_password
     data["admin_project_id"] = admin_project_id
     data["horizon_base_url"] = horizon_base_url
