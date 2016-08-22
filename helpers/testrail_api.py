@@ -102,13 +102,13 @@ class TestRailRun:
         self.tr_api_client.user = conf["test_rail_auth_login"]
         self.tr_api_client.password = conf["test_rail_auth_pass"]
 
-        # check our test suit
+        # check out our test suit
         self.tr_test_suite = self.tr_api_client.send_get(
             "get_suite/{}".format(conf["test_rail_suite_id"]))
 
         if not self.tr_test_suite:
             raise Exception(
-                "Test rail {} dont exist".format(conf["test_rail_suite_id"]))
+                "Test rail suit {} dont exist".format(conf["test_rail_suite_id"]))
 
         test_run_name = "{} {} #{} {}".format(
             conf["openstack_version"],
