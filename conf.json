@@ -6,5 +6,13 @@
   "keystone_public_url": "http://172.16.47.232:5000/v3",
   "glance_public_url": "http://172.16.47.232:9292",
   "neutron_public_url": "http://172.16.47.232:9696",
-  "grid_url": "http://localhost:4444/wd/hub"
+  "grid_url": "http://localhost:4444/wd/hub",
+  "openstack_version": "9.0",
+  "openstack_build": 495,
+  "openstack_milestone_id": 18,
+  "testrail_url": "https://mirantis.testrail.com/",
+  "test_rail_project_id": 3,
+  "test_rail_suite_id": 4308,
+  "test_rail_auth_login": "*****@mirantis.com",
+  "test_rail_auth_pass": "****"
 }
