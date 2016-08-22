@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     horizon_base_url = os.popen(
         "keystone endpoint-list | grep 9696 | head -n 1 | cut -d'|' -f 4"
-    ).read().strip().replace(":9292", "")
+    ).read().strip().replace(":9292", "/horizon/")
 
     keystone_public_url = os.popen(
         "keystone endpoint-list | grep 5000 | head -n 1 | cut -d'|' -f 4"
