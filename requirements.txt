@@ -11,3 +11,4 @@ pytest==2.9.1
 pyvirtualdisplay
 pyscreenshot
 entrypoint2
+numpy
