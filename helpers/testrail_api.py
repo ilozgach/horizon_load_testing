@@ -117,8 +117,6 @@ class TestRailRun:
             datetime.datetime.today().strftime('%m/%d/%Y %H:%M')
         )
 
-        # print test_run_name
-
         self.user_for_assign = self.tr_api_client.send_get(
             "get_user_by_email&email={}".format(self.tr_api_client.user))
 
@@ -152,7 +150,7 @@ class TestRailRun:
         if not test_case:
             return
 
-            # get custom expected value
+        # get custom expected value
         if len(test_case["custom_test_case_steps"]) > 0:
             expected_value = float(
                 test_case["custom_test_case_steps"][0]['expected'])
