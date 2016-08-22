@@ -75,9 +75,6 @@ class TetsRailAPIClient:
         else:
             result = {}
 
-        # pprint(response)
-        # pprint(result)
-
         if e != None:
             if result and 'error' in result:
                 error = '"' + result['error'] + '"'
@@ -108,7 +105,8 @@ class TestRailRun:
 
         if not self.tr_test_suite:
             raise Exception(
-                "Test rail suit {} dont exist".format(conf["test_rail_suite_id"]))
+                "Test rail suit {} dont exist".format(
+                    conf["test_rail_suite_id"]))
 
         test_run_name = "{} {} #{} {}".format(
             conf["openstack_version"],
@@ -136,7 +134,7 @@ class TestRailRun:
         # self.tr_new_run = {"id": 18250}
 
     def add_result(self, test_case_id, percentile, time_elapsed_sec):
-        """Chack that test case with test_case_id is exists and add result for it.
+        """Check that test case with test_case_id is exists and add result for it.
         Also getting expected result value from test case.
         """
         # we must get expected result value for comparing
