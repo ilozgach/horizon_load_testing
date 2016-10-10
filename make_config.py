@@ -4,29 +4,29 @@ import os
 if __name__ == '__main__':
     # collect values from fuel
     admin_user_id = os.popen(
-        "keystone user-list | grep admin | head -n 1 | cut -d'|' -f 2"
+        "openstack user list | grep admin | head -n 1 | cut -d'|' -f 2"
     ).read().strip()
 
     admin_user_password = "admin"
 
     admin_project_id = os.popen(
-        "keystone tenant-list | grep admin | head -n 1 | cut -d'|' -f 2"
+        "openstack project list | grep admin | head -n 1 | cut -d'|' -f 2"
     ).read().strip()
 
     horizon_base_url = os.popen(
-        "keystone endpoint-list | grep 9696 | head -n 1 | cut -d'|' -f 4"
-    ).read().strip().replace(":9292", "/horizon/")
+        "openstack endpoint show keystone | grep publicurl | head -n 1 | cut -d'|' -f 3"
+    ).read().strip().replace(":5000/v2.0", "/horizon/")
 
     keystone_public_url = os.popen(
-        "keystone endpoint-list | grep 5000 | head -n 1 | cut -d'|' -f 4"
+        "openstack endpoint show keystone | grep adminurl | head -n 1 | cut -d'|' -f 3"
     ).read().strip().replace('v2.0', 'v3')
 
     glance_public_url = os.popen(
-        "keystone endpoint-list | grep 9292 | head -n 1 | cut -d'|' -f 4"
+        "openstack endpoint show glance | grep adminurl | head -n 1 | cut -d'|' -f 3"
     ).read().strip()
 
     neutron_public_url = os.popen(
-        "keystone endpoint-list | grep 9696 | head -n 1 | cut -d'|' -f 4"
+        "openstack endpoint show neutron | grep adminurl | head -n 1 | cut -d'|' -f 3"
     ).read().strip()
 
     grid_url = "http://localhost:4444/wd/hub"
