@@ -142,7 +142,7 @@ class TestRailRun:
         test_case = self.tr_api_client.send_get(
             "get_case/{}".format(test_case_id))
 
-        expected_value = self.conf["expected_defaul_value"]
+        expected_value = self.conf["expected_default_value"]
 
         # no test case? go next
         if not test_case:

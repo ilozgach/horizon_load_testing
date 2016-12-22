@@ -14,5 +14,6 @@
   "test_rail_project_id": 3,
   "test_rail_suite_id": 4308,
   "test_rail_auth_login": "*****@mirantis.com",
-  "test_rail_auth_pass": "****"
+  "test_rail_auth_pass": "****",
+  "expected_default_value": 2
 }
